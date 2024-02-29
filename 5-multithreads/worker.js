@@ -1,3 +1,3 @@
-const { workerData, parentPort } = require("worker_threads");
-const res = workerData.arr.reduce((acc, num) => (num % 3 == 0 ? ++acc : acc), 0);
-parentPort.postMessage(res);
+const {workerData:{PartBigArr},parentPort}=require('worker_threads')
+const bigTask=require('./bigTask')
+parentPort.postMessage(bigTask(PartBigArr))

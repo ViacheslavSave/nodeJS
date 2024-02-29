@@ -1,41 +1,54 @@
 const { Worker } = require("worker_threads");
-
 const { performance, PerformanceObserver } = require("perf_hooks");
+const { cpus } = require("os");
+const bigTask = require("./bigTask");
+
+const bigNum = 100_000;
+const CountStreams = cpus().length;
+const bigArrayNums = generateBigArrayNums();
+
 const performanceObserver = new PerformanceObserver((items) => {
-	const { name, duration } = items.getEntries().pop();
+	const { name, duration } = items.getEntries().slice(-1)[0];
 	console.log(`Время выполнения функции ${name} ${duration.toFixed(2)}`);
 });
 performanceObserver.observe({ entryTypes: ["function"] });
-remDivision = performance.timerify(remDivision);
-sendInWorker = performance.timerify(sendInWorker);
-let arrNumber = [];
-for (let index = 0; index < 100_000_000; index++) {
-	arrNumber.push(index);
-}
-function remDivision(arr) {
-	arr.reduce((acc, num) => (num % 3 == 0 ? ++acc : acc), 0);
-}
-remDivision(arrNumber);
 
-//!----------------------------------------------------------------------------
-const cores = 4;
-const lengthPart = Math.floor(arrNumber.length / cores);
-const arrParts = [];
-for (let index = 0; index < cores; index++) {
-	const length = index != cores - 1 ? lengthPart : arrNumber.length;
-	arrParts.push(arrNumber.splice(0, length));
-}
+testNoWorker = performance.timerify(testNoWorker);
+testWithWorker = performance.timerify(testWithWorker);
 
-sendInWorker(arrParts);
+testNoWorker(bigArrayNums);
+testWithWorker(bigArrayInParts(bigArrayNums));
 
-async function sendInWorker(arrParts) {
-	const arrPromises = [];
-	for (let index = 0; index < arrParts.length; index++) {
-		const promise = new Promise((resolve, reject) => {
-			const worker = new Worker("./worker.js", { workerData: { arr: arrParts[index] } });
-			worker.on("message", (res) => resolve(res));
-		});
-		arrPromises.push(promise);
+function generateBigArrayNums() {
+	let arrNumber = [];
+	for (let index = 0; index < bigNum; index++) {
+		arrNumber.push(index);
 	}
-	await Promise.all(arrPromises);
+	return arrNumber;
+}
+
+function testNoWorker(bigArray) {
+	bigTask(bigArray);
+}
+
+function bigArrayInParts(arrNumber) {
+	const lengthPart = Math.floor(arrNumber.length / CountStreams);
+	const arrParts = [];
+	for (let index = 0; index < CountStreams; index++) {
+		const length = index != CountStreams - 1 ? lengthPart : arrNumber.length;
+		arrParts.push(arrNumber.splice(0, length));
+	}
+	return arrParts;
+}
+
+function promWorker(part) {
+	return new Promise((resolve) => {
+		const worker = new Worker("./worker.js", { workerData: { PartBigArr: part } });
+		worker.on("message", (res) => resolve(res));
+	});
+}
+
+async function testWithWorker(arrParts) {
+	const arrPromises = arrParts.map((part) => promWorker(part));
+	return await Promise.all(arrPromises);
 }
