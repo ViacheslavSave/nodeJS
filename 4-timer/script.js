@@ -1,17 +1,25 @@
-(() => {
-	const [_, __, ...rest] = process.argv;
-	let time = rest.join(" ").match(/^(?:(\d+)h )(?:(\d+)m )(?:(\d+)s)$/);
-	if (!time ) {
-		console.log("Введены некорректные параметры");
-		return;
+const secInMin = 60;
+const secInHour = secInMin * 60;
+const [_, __, ...rest] = process.argv;
+
+// timer(() => {
+// 	console.log("время прошло");
+// });
+
+function timer(callback) {
+	let res = rest.join("").match(/^(?:(\d+)h)(?:(\d+)m)(?:(\d+)s)$/);
+
+	if (!res) {
+		throw new Error("Введены некорректные параметры");
 	}
-	let timeout = 0;
-	if (time[1]) timeout += time[1] * 60 * 60 * 1000;
-	if (time[2]) timeout += time[2] * 60 * 1000;
-	if (time[3]) timeout += time[3] * 1000;
-  
+
+	const [_q, hour, minutes, seconds] = res;
+	let timeoutInSeconds = 0;
+	timeoutInSeconds += Number(hour) * secInHour;
+	timeoutInSeconds += Number(minutes) * secInMin;
+	timeoutInSeconds += Number(seconds);
+
 	console.log(`таймер установлен`);
-	timeout && setTimeout(() => {
-		console.log(`время прошло`);
-	}, timeout);
-})();
+	setTimeout(callback, timeoutInSeconds * 1000);
+}
+module.exports = timer;
