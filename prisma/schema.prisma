@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  // previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -14,26 +15,44 @@ datasource db {
 }
 
 model UserModel {
-  id       Int       @id @default(autoincrement())
-  email    String    @unique
+  id       Int            @id @default(autoincrement())
+  email    String         @unique
   password String
   name     String
   role     String
-  product  Product[]
+  product  ProductModel[]
 }
 
-model Product {
-  id               Int       @id @default(autoincrement())
-  brand            String
-  model            String
-  VoWiFi           Boolean
-  RAMCapacity      String
-  OSVersion        String
-  NumberOfSIMCards Int
-  FrontCamera      String
-  BuiltInMemory    String
-  MainCamera       String
-  author           UserModel @relation(fields: [added], references: [id])
-  added            Int
-  quantity         Int   @default(0)
+model ProductModel {
+  id              Int                    @id @default(autoincrement())
+  price           Int
+  oldPrice        Int?
+  active          Boolean                @default(false)
+  productName     String
+  category        String
+  weight          Int
+  description     String?
+  count           Int                    @default(0) 
+  characteristics CharacteristicsModel[]
+  dimensions      DimensionsModel?
+  UserModel       UserModel              @relation(fields: [userModelId], references: [id])
+  userModelId     Int
+
+}
+
+model DimensionsModel {
+  id        Int          @id @default(autoincrement())
+  width     Int
+  Height    Int
+  Length    Int
+  Product   ProductModel @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int          @unique
+}
+
+model CharacteristicsModel {
+  id        Int          @id @default(autoincrement())
+  property  String
+  value     String
+  Product   ProductModel @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int
 }

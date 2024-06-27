@@ -1,21 +1,15 @@
 import express, { Express } from "express";
-import { LoggerService } from "./loger/loger.service";
-import { ILogger } from "./loger/logger.interface";
-import { PrismaService } from "./database/prisma.service";
+import { ILogger } from "./logger/logger-interface";
+import { PrismaService } from "./database/prisma-service";
 import { inject, injectable } from "inversify";
 import { TYPES } from "./types";
-import { UserController } from "./users/users.controller";
-import { IExeptionFilter } from "./errors/exeption.filter.interface";
-import { IConfigService } from "./config/config.service.interface";
-import { AuthMiddleware } from "./common/auth.middleware";
+import { UserController } from "./domain/users/controllers/users-controller";
+import { IExceptionFilter } from "./errors/exception-filter-interface";
+import { AuthMiddleware } from "./common/auth-middleware";
 import { json } from "body-parser";
-import "reflect-metadata";
-import { UserService } from "./users/users.service";
-import { IMiddleware } from "./common/middleware.intrface";
-import { IAdminController } from "./users/admin/admin.controller.interface";
-import { AdminController } from "./users/admin/admin.controller";
+// import "reflect-metadata";
 import { Request, Response, NextFunction } from "express";
-import { HeadOfWarehouseController } from "./users/HeadOfWarehouse/headOfWarehouse.controller";
+import { ProductsController } from "./domain/products/controllers/products-controller";
 
 @injectable()
 export class App {
@@ -23,27 +17,25 @@ export class App {
 	constructor(
 		@inject(TYPES.ILogger) private logger: ILogger,
 		@inject(TYPES.UserController) private userController: UserController,
-		@inject(TYPES.IAdminController) private adminController: AdminController,
-		@inject(TYPES.ExeptionFilter) private exeptionFilter: IExeptionFilter,
-		@inject(TYPES.ConfigService) private configService: IConfigService,
+		@inject(TYPES.IProductsController) private productsController: ProductsController,
+		@inject(TYPES.ExceptionFilter) private exceptionFilter: IExceptionFilter,
 		@inject(TYPES.PrismaService) private prismaService: PrismaService,
-		@inject(TYPES.AuthMiddleware) private authMiddleware: AuthMiddleware,
-		@inject(TYPES.IheadOfWarehouseController) private headOfWarehouseController: HeadOfWarehouseController
+		@inject(TYPES.AuthMiddleware) private authMiddleware: AuthMiddleware
 	) {
 		this.app = express();
 	}
 
 	useRoutes() {
 		this.app.use("/users", this.userController.router);
-		this.app.use("/admin", this.adminController.router);
-		this.app.use("/headOfWarehouse", this.headOfWarehouseController.router);
+		this.app.use("/products", this.productsController.router);
 	}
-	useMiddlewaire() {
+	useMiddleware() {
 		this.app.use(json());
 		this.app.use(this.authMiddleware.execute.bind(this.authMiddleware));
 	}
-	useExeptionFilters() {
-		this.app.use(this.exeptionFilter.catch.bind(this.exeptionFilter));
+
+	useExceptionFilters() {
+		this.app.use(this.exceptionFilter.catch.bind(this.exceptionFilter));
 	}
 	use404() {
 		this.app.use((req: Request, res: Response, next: NextFunction) => {
@@ -52,11 +44,11 @@ export class App {
 	}
 
 	async init(port: number) {
-		this.useMiddlewaire();
+		this.useMiddleware();
 		this.useRoutes();
 		await this.prismaService.connect();
-		this.useExeptionFilters();
 		this.use404();
+		this.useExceptionFilters();
 
 		this.app.listen(port, () => {
 			this.logger.log(`[App] сервер запущен на http://localhost:${port}`);
