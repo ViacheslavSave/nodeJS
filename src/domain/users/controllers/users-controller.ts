@@ -66,7 +66,7 @@ export class UserController extends BaseController implements IUserController {
 			return next(result);
 		}
 
-		this.ok(res, result);
+		return this.send(res, 201, result);
 	}
 
 	async headOfWarehouse({ user, body }: Request<{}, {}, UserRegisterDto>, res: Response, next: NextFunction) {
@@ -91,7 +91,6 @@ export class UserController extends BaseController implements IUserController {
 		}
 		const jwt = await this.signJWT(result.email, this.configService.get("SECRET"));
 		res.set("authorization", jwt).send({ ...result, jwt });
-
 	}
 
 	private async signJWT(email: string, secret: string): Promise<string> {

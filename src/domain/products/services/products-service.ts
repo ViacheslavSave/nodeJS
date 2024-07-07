@@ -19,7 +19,13 @@ import { IProductsService } from "./products-service-interface";
 export class ProductsService implements IProductsService {
 	constructor(@inject(TYPES.IProductsRepository) private productsRepository: IProductsRepository) {}
 
-	async getProducts({ priceMin, priceMax, text, characteristics }: ProductFilterDto): Promise<ProductsGetOrHTTPError> {
+	async getProducts({
+		priceMin,
+		priceMax,
+		text,
+		characteristics,
+		availability,
+	}: ProductFilterDto): Promise<ProductsGetOrHTTPError> {
 		const characteristicsFilter = characteristics?.reduce<ICharacteristics[]>((acc, { property, value }) => {
 			const characteristics = {
 				characteristics: {
@@ -38,7 +44,7 @@ export class ProductsService implements IProductsService {
 				lte: priceMax,
 			},
 		};
-
+		availability && (productFilter.count = { gte: 1 });
 		text && (productFilter.description = { contains: text });
 		characteristicsFilter && (productFilter.AND = characteristicsFilter);
 		return await this.productsRepository.getProducts(productFilter);
