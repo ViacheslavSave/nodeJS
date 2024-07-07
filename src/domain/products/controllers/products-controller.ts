@@ -87,7 +87,7 @@ export class ProductsController extends BaseController implements IProductsContr
 
 		const quantityValid = quantity.match(/^-?(\d+)$/g)?.[0];
 		const idValid = id.match(/^-?(\d+)$/g)?.[0];
-		if (!quantityValid || idValid) {
+		if (!quantityValid || !idValid) {
 			return next(new HTTPError(422, "неверные данные"));
 		}
 

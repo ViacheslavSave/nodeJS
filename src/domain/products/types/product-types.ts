@@ -6,6 +6,9 @@ export interface IProductFilter {
 		gte?: number;
 		lte?: number;
 	};
+	count?: {
+		gte: number;
+	};
 	description?: {
 		contains: string;
 	};

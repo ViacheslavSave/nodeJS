@@ -1,5 +1,5 @@
 import { Transform, Type } from "class-transformer";
-import { IsArray, ValidateIf, IsString, ValidateNested, IsNumber } from "class-validator";
+import { IsArray, ValidateIf, IsString, ValidateNested, IsNumber, IsBoolean } from "class-validator";
 
 class Characteristics {
 	@IsString()
@@ -18,6 +18,9 @@ export class ProductFilterDto {
 	@Transform(({ value }) => parseInt(value))
 	@IsNumber()
 	priceMax?: number;
+
+	@IsBoolean()
+	availability: boolean;
 
 	@ValidateIf((ob) => ob.hasOwnProperty("text"))
 	@IsString()

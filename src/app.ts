@@ -7,13 +7,16 @@ import { UserController } from "./domain/users/controllers/users-controller";
 import { IExceptionFilter } from "./errors/exception-filter-interface";
 import { AuthMiddleware } from "./common/auth-middleware";
 import { json } from "body-parser";
-// import "reflect-metadata";
+import "reflect-metadata";
+import { Server } from "http";
 import { Request, Response, NextFunction } from "express";
 import { ProductsController } from "./domain/products/controllers/products-controller";
 
 @injectable()
 export class App {
-	private app: Express;
+	app: Express;
+	server: Server;
+
 	constructor(
 		@inject(TYPES.ILogger) private logger: ILogger,
 		@inject(TYPES.UserController) private userController: UserController,
@@ -50,8 +53,11 @@ export class App {
 		this.use404();
 		this.useExceptionFilters();
 
-		this.app.listen(port, () => {
+		this.server = this.app.listen(port, () => {
 			this.logger.log(`[App] сервер запущен на http://localhost:${port}`);
 		});
+	}
+	public close(): void {
+		this.server.close();
 	}
 }

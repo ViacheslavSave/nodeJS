@@ -49,6 +49,9 @@ async function bootstrap() {
 	const app = appContainer.get<App>(TYPES.Application);
 	const config = appContainer.get<IConfigService>(TYPES.ConfigService);
 	await app.init(parseInt(config.get("PORT")));
+  return {appContainer,app}
+
 }
 
-bootstrap();
+export const boot = bootstrap();
+
